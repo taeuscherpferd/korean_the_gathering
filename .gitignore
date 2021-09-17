@@ -1,0 +1,42 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+node_modules/
+/ui/.vscode
+.vscode
+/ui/.pnp
+.pnp.js
+
+# testing
+/coverage
+ui/src/tests/SpecFlow.Tests/**/*.feature.cs
+
+# production
+/build
+
+# misc
+.DS_Store
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.deployment
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+ui/node_modules/
+ui/build
+ui/test-report.xml
+ui/coverage/
+ui/junit.xml
+ui/.npmrc
+ui/.eslintcache
+**/.vs
+**/packages
+**/bin
+**/obj
+TestResults
+ui/src/tests/SpecFlow.Tests/SpecFlow.MsTests/SpecFlow.MsTests.csproj.user
+*.user
+/$tf

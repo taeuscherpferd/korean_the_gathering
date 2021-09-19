@@ -4,8 +4,11 @@ class Room {
   state = []
   roomId = ""
 
-  constructor(roomId, player, socket) {
+  constructor(roomId) {
     this.roomId = roomId
-    this.players.push(player)
+  }
+
+  addPlayer(player) {
+    players.push(player)
   }
 }

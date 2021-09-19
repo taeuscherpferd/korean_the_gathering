@@ -41,6 +41,7 @@ io.on('connection', (socket) => { /* socket object may be used to send specific 
 
   socket.on("requestJoinRoom", ({ room }) => {
 
+
   })
 
   socket.on("createRoom", ({ room }) => {
@@ -51,8 +52,8 @@ io.on('connection', (socket) => { /* socket object may be used to send specific 
       }
     })
 
-    const newRoom = new room()
-
+    const newRoom = new Room(room)
+    socket.emit('roomCreated', room)
   })
 
   socket.on("joinRoom", (socket) => {

@@ -40,8 +40,15 @@ io.on('connection', (socket) => { /* socket object may be used to send specific 
   })
 
   socket.on("requestJoinRoom", ({ room }) => {
+    rooms.forEach(x => {
+      if (x.roomId === room) {
+        socket.emit('roomFound', room)
+        return
+      }
+    })
 
-
+    socket.emit('errorMessage', "Room not found")
+    return
   })
 
   socket.on("createRoom", ({ room }) => {
@@ -60,7 +67,7 @@ io.on('connection', (socket) => { /* socket object may be used to send specific 
 
   })
 
-  socket.on("addToList", (socket) => {
+  socket.on("addToList", (socket, {words}) => {
 
   })
 

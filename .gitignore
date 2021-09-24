@@ -13,6 +13,7 @@ ui/src/tests/SpecFlow.Tests/**/*.feature.cs
 
 # production
 /build
+backend/build/
 
 # misc
 .DS_Store

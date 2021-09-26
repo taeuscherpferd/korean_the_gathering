@@ -98,10 +98,20 @@ io.on('connection', (socket) => { /* socket object may be used to send specific 
 
   socket.on("addToList", ({ words, roomId }) => {
     const room = getRoom(roomId)
+    
+    //TODO: Limit card count
+    if (!room.players.some((x) => x.id === socket.id)) {
+      socket.emit("unauthorized")
+      return
+    }
+     
+    const cardStrings = words.split("\n")
+    const cards = cardStrings.map((x) => {
+      const termDef = x.split(":")
+      return new Card(termDef[0], termDef[1])
+    })
 
-    //TODO: Validate
-    // if (room.players)
-
+    room.cards.push(cards)
   })
 
   socket.on("startGame", (socket) => {

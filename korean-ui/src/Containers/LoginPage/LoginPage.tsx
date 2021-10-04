@@ -15,18 +15,33 @@ export const LoginPage: React.FC<LoginPageProps> = (props) => {
   const socket = useSelector((x: AllAppState) => x.socket)
 
   useEffect(() => {
+    const onRoomCreatedHandler = () => {
+      alert("Room Created!")
+    }
 
+    socket?.on("roomCreated", onRoomCreatedHandler)
+
+    return () => {
+      socket?.off("roomCreated", onRoomCreatedHandler)
+    }
   }, [])
 
   const onJoinRoomClick = () => {
+    setJoiningRoom(true)
+    socket?.emit("joinRoom")
 
   }
 
   const onCreateRoomClick = () => {
+    setCreatingRoom(true)
+    console.log(socket)
+    console.log("GRRRR")
+    socket?.emit("createRoom", { roomId: roomId, name: name })
 
   }
 
   const onCancelHostClick = () => {
+    setCreatingRoom(false)
 
   }
 

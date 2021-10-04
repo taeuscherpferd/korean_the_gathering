@@ -2,6 +2,7 @@ import cors from 'cors';
 import express from 'express';
 import http from 'http';
 import { Server } from 'socket.io';
+import { Card } from './models/Card';
 import { Player } from './models/Player';
 import { Room } from './models/Room';
 
@@ -58,22 +59,25 @@ io.on('connection', (socket) => { /* socket object may be used to send specific 
   })
 
   socket.on("createRoom", ({ roomId }) => {
+        console.log("Wah!")
     rooms.forEach(x => {
       if (x.roomId === roomId) {
         socket.emit('errorMessage', "Room already exists!")
+        console.log("boo broken!")
         return
       }
     })
 
     const newRoom = new Room(roomId)
     rooms.push(newRoom)
+    console.log("roomCreated")
     socket.emit('roomCreated', roomId)
   })
 
   socket.on("joinRoom", ({ roomId, name }) => {
     const room = getRoom(roomId)
     if (room === undefined || name === '') {
-      io.to(socket.id).emit('joinError')
+      io.to(socket.id).emit('errorMessage', "Stop spoofing you goof!")
       return
     }
 
@@ -98,20 +102,24 @@ io.on('connection', (socket) => { /* socket object may be used to send specific 
 
   socket.on("addToList", ({ words, roomId }) => {
     const room = getRoom(roomId)
-    
-    //TODO: Limit card count
-    if (!room.players.some((x) => x.id === socket.id)) {
-      socket.emit("unauthorized")
+    if (!room) {
+      socket.emit("errorMessage", "Room Doesn't Exist!")
       return
     }
-     
+
+    //TODO: Limit card count
+    if (!room.players.some((x) => x.id === socket.id)) {
+      socket.emit("errorMessage", "unauthorized")
+      return
+    }
+
     const cardStrings = words.split("\n")
-    const cards = cardStrings.map((x) => {
+    const cards = cardStrings.map((x: string) => {
       const termDef = x.split(":")
       return new Card(termDef[0], termDef[1])
     })
 
-    room.cards.push(cards)
+    room.addCards(cards)
   })
 
   socket.on("startGame", (socket) => {

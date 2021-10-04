@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { LoginPage } from 'Containers/LoginPage/LoginPage';
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import './App.css';
 
 function App() {

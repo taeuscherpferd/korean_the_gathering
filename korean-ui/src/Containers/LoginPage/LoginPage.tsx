@@ -10,42 +10,59 @@ export const LoginPage: React.FC<LoginPageProps> = (props) => {
   let userID = "bleh"
   const [roomId, setRoomId] = useState("")
   const [name, setName] = useState("")
+  const [showWaitingMessage, setShowWaitingMessage] = useState(false)
   const [creatingRoom, setCreatingRoom] = useState(false)
   const [joiningRoom, setJoiningRoom] = useState(false)
   const socket = useSelector((x: AllAppState) => x.socket)
 
   useEffect(() => {
     const onRoomCreatedHandler = () => {
-      alert("Room Created!")
+      socket?.emit("joinRoom", { roomId, name })
+    }
+
+    const onRoomJoinedWaiting = () => {
+      setShowWaitingMessage(true)
+    }
+
+    const onRoomJoinedSetupGame = () => {
+      setShowWaitingMessage(false)
+    }
+
+    const onErrorHandler = (error: string) => {
+      alert(error)
+      setJoiningRoom(false)
+      setCreatingRoom(false)
     }
 
     socket?.on("roomCreated", onRoomCreatedHandler)
+    socket?.on("errorMessage", onErrorHandler)
+    socket?.on("waitingForPlayers", onRoomJoinedWaiting)
+    socket?.on("setupGame", onRoomJoinedSetupGame)
 
     return () => {
       socket?.off("roomCreated", onRoomCreatedHandler)
+      socket?.off("errorMessage", onErrorHandler)
+      socket?.off("waitingForPlayers", onRoomJoinedWaiting)
+      socket?.off("setupGame", onRoomJoinedSetupGame)
     }
-  }, [])
+  }, [name, roomId, socket])
 
   const onJoinRoomClick = () => {
     setJoiningRoom(true)
-    socket?.emit("joinRoom")
-
+    socket?.emit("joinRoom", { roomId: roomId, name: name })
   }
 
   const onCreateRoomClick = () => {
     setCreatingRoom(true)
-    console.log(socket)
-    console.log("GRRRR")
     socket?.emit("createRoom", { roomId: roomId, name: name })
-
   }
 
   const onCancelHostClick = () => {
     setCreatingRoom(false)
-
+    socket?.emit("cancelHost", { roomId: roomId, name: name })
   }
 
-  const feedback = (<div></div>)
+  const feedback = (<div>{"Waiting for players....."}</div>)
 
   const CancelButton = (
     creatingRoom ? <button onClick={onCancelHostClick}>Cancel</button> : null
@@ -53,6 +70,7 @@ export const LoginPage: React.FC<LoginPageProps> = (props) => {
 
   return (
     <div className={styles.LoginPage}>
+      {showWaitingMessage ? feedback : null}
       <span>Name</span>
       <input type="text" value={name} onChange={(e) => setName(e.target.value)} />
       <span>Room Name</span>

@@ -59,14 +59,12 @@ io.on('connection', (socket) => { /* socket object may be used to send specific 
   })
 
   socket.on("createRoom", ({ roomId }) => {
-        console.log("Wah!")
-    rooms.forEach(x => {
+    for (let x of rooms) {
       if (x.roomId === roomId) {
         socket.emit('errorMessage', "Room already exists!")
-        console.log("boo broken!")
         return
       }
-    })
+    }
 
     const newRoom = new Room(roomId)
     rooms.push(newRoom)
@@ -82,7 +80,7 @@ io.on('connection', (socket) => { /* socket object may be used to send specific 
     }
 
     if (room.players.length >= 2) {
-      io.to(socket.id).emit('roomFull')
+      io.to(socket.id).emit('errorMessage', "Room Full")
       return
     }
 

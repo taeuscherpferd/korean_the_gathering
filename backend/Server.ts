@@ -124,6 +124,7 @@ io.on('connection', (socket) => { /* socket object may be used to send specific 
 
   socket.on("startGame", (socket) => {
     //TODO: Set up the game 
+    socket.emit("WOOOOOOOOOO")
 
   })
 

@@ -45,7 +45,6 @@ export const LoginPage: React.FC<LoginPageProps> = (props) => {
 
   }
 
-
   const feedback = (<div></div>)
 
   const CancelButton = (

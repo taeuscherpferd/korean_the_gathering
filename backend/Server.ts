@@ -85,6 +85,7 @@ io.on('connection', (socket) => { /* socket object may be used to send specific 
     }
 
     socket.join(roomId)
+    console.log("Just Joined ", socket.rooms)
     const id = socket.id
     const newPlayer = new Player(name, roomId, id)
 
@@ -130,8 +131,24 @@ io.on('connection', (socket) => { /* socket object may be used to send specific 
 
   })
 
-  socket.on("disconnect", () => {
+  socket.on("disconnecting", () => {
+    const curRooms = Array.from(socket.rooms)
+    console.log(curRooms)
+    if (curRooms.length !== 2) return
 
+    const room = getRoom(curRooms[1])
+    room?.removePlayer(socket.id)
+
+    if (room?.players.length === 1) {
+      io.to(room.roomId).emit("opponentDisconnected")
+      return
+    }
+
+    if (room) {
+      rooms.splice(rooms.indexOf(room), 1)
+    }
+
+    console.log("Rooms after Disconnect ", rooms)
   })
 
   socket.on("getOponents", () => {

@@ -25,6 +25,7 @@ export const LoginPage: React.FC<LoginPageProps> = (props) => {
     }
 
     const onRoomJoinedSetupGame = () => {
+      console.log("game starting...")
       setShowWaitingMessage(false)
     }
 

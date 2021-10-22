@@ -20,4 +20,7 @@ export class Room {
     cards.forEach(this.cards.add, this.cards)
   }
 
+  removePlayer(playerId: string) {
+    this.players = this.players.filter((x) => x.id !== playerId)
+  }
 }

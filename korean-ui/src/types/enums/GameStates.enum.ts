@@ -1,4 +1,6 @@
 export enum GameStates {
+  FindingMatch = "FindingMatch",
+  SetupGame = "SetupGame",
   Playing = "Playing",
-  FindingMatch = "FindingMatch"
+  GameOver = "GameOver",
 }

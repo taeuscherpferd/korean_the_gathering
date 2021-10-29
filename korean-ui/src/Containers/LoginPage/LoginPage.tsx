@@ -1,18 +1,20 @@
 import React, { useEffect, useState } from 'react'
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { AllAppState } from 'redux/types/reduxTypes'
+import { GameStates } from 'types/enums/GameStates.enum'
 import styles from './LoginPage.module.scss'
 
 interface LoginPageProps {
 }
 
 export const LoginPage: React.FC<LoginPageProps> = (props) => {
-  let userID = "bleh"
   const [roomId, setRoomId] = useState("")
   const [name, setName] = useState("")
   const [showWaitingMessage, setShowWaitingMessage] = useState(false)
   const [creatingRoom, setCreatingRoom] = useState(false)
   const [joiningRoom, setJoiningRoom] = useState(false)
+  const dispatch = useDispatch();
+  const setGameState = () => dispatch({ type: 'SET_GAME_STATE', payload: GameStates.SetupGame });
   const socket = useSelector((x: AllAppState) => x.socket)
 
   useEffect(() => {
@@ -27,6 +29,7 @@ export const LoginPage: React.FC<LoginPageProps> = (props) => {
     const onRoomJoinedSetupGame = () => {
       console.log("game starting...")
       setShowWaitingMessage(false)
+      setGameState()
     }
 
     const onErrorHandler = (error: string) => {

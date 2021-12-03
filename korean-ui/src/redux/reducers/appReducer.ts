@@ -1,4 +1,4 @@
-import { SET_CONNECTION_STATE, SET_GAME_STATE, SET_SOCKET } from "redux/actions/appActions"
+import { SET_CONNECTION_STATE, SET_GAME_STATE, SET_ROOM_ID, SET_SOCKET } from "redux/actions/appActions"
 import { AppActionTypes, AppState } from "redux/types/reduxTypes"
 import { ConnectionStates } from "types/enums/ConnectionStates.enum"
 import { GameStates } from "types/enums/GameStates.enum"
@@ -6,6 +6,7 @@ import { GameStates } from "types/enums/GameStates.enum"
 const initialState: AppState = {
   connectionState: ConnectionStates.Disconnected,
   gameState: GameStates.FindingMatch,
+  roomId: "",
   socket: null
 }
 
@@ -27,6 +28,12 @@ export const AppReducer = (state = initialState, action: AppActionTypes) => {
       return {
         ...state,
         socket: action.payload
+      }
+    }
+    case SET_ROOM_ID: {
+      return {
+        ...state,
+        roomId: action.payload
       }
     }
   }

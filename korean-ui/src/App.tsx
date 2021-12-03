@@ -1,7 +1,7 @@
 import axios from 'axios';
+import { GamePage } from 'Containers/GamePage/GamePage';
 import { LobbyPage } from 'Containers/LobbyPage/LobbyPage';
-import { LoginPage } from 'Containers/LoginPage/LoginPage';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { AllAppState } from 'redux/types/reduxTypes';
 import { ConnectionStates } from 'types/enums/ConnectionStates.enum';
@@ -9,6 +9,7 @@ import { GameStates } from 'types/enums/GameStates.enum';
 import './App.css';
 
 function App() {
+  const [playerName, setPlayerName] = useState("")
   const gameState = useSelector((state: AllAppState) => state.gameState);
   const connectionState = useSelector((state: AllAppState) => state.connectionState);
 
@@ -29,11 +30,16 @@ function App() {
 
   const currentGamePage = (() => {
     if (connectionState === ConnectionStates.Disconnected || connectionState === ConnectionStates.Connected && gameState === GameStates.FindingMatch) {
-      return <LoginPage />
+      // return <LoginPage playerName={playerName} setPlayerName={setPlayerName} />
+      return <GamePage />
     }
 
     if (gameState === GameStates.SetupGame) {
-      return <LobbyPage />
+      return <LobbyPage name={playerName} />
+    }
+
+    if (gameState === GameStates.Playing) {
+      return <GamePage />
     }
   })()
 

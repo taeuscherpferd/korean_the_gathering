@@ -1,7 +1,8 @@
-import { INIT_APP, SET_CONNECTION_STATE, SET_SOCKET } from 'redux/actions/appActions';
+import { INIT_APP, SET_CONNECTION_STATE, SET_GAME_STATE, SET_SOCKET } from 'redux/actions/appActions';
 import { AllActionTypes } from 'redux/types/reduxTypes';
 import io, { Socket } from 'socket.io-client';
 import { ConnectionStates } from 'types/enums/ConnectionStates.enum';
+import { GameStates } from 'types/enums/GameStates.enum';
 
 const EMIT_MESSAGE = 'socket-io/EMIT_MESSAGE';
 
@@ -25,6 +26,17 @@ const createWebSocketMiddleware = (store: any) =>
             store.dispatch({ type: SET_CONNECTION_STATE, payload: ConnectionStates.Connected })
             console.log("middleware", SocketInstance)
             store.dispatch({ type: SET_SOCKET, payload: SocketInstance })
+
+            SocketInstance.on('disconnect', () => {
+              store.dispatch({ type: SET_CONNECTION_STATE, payload: ConnectionStates.Disconnected })
+              store.dispatch({ type: SET_SOCKET, payload: null })
+              store.dispatch({ type: SET_GAME_STATE, payload: GameStates.FindingMatch })
+              alert("Server disconnected")
+            })
+            //TODO: Implement this
+            // SocketInstance.on('opponentDisconnected', () => {
+
+            // })
           }
         }
         catch (ex) {

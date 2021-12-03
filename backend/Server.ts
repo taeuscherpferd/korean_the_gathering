@@ -1,7 +1,7 @@
 import cors from 'cors';
 import express from 'express';
 import http from 'http';
-import { Server } from 'socket.io';
+import { Server, Socket } from 'socket.io';
 import { Card } from './models/Card';
 import { Player } from './models/Player';
 import { Room } from './models/Room';
@@ -36,7 +36,22 @@ httpServer.listen(PORT, () => {
 const rooms: Room[] = []
 
 const getRoom = (roomId: string) => {
-  return rooms.find(x => roomId)
+  return rooms.find(x => x.roomId === roomId)
+}
+
+const validateRequest = (roomId: string, socket: Socket) => {
+  const room = getRoom(roomId)
+  if (!room) {
+    socket.emit("errorMessage", "Room Doesn't Exist!")
+    return
+  }
+
+  if (!room.players.some((x) => x.id === socket.id)) {
+    socket.emit("errorMessage", "unauthorized")
+    return
+  }
+
+  return room
 }
 
 io.on('connection', (socket) => { /* socket object may be used to send specific messages to the new connected client */
@@ -112,6 +127,11 @@ io.on('connection', (socket) => { /* socket object may be used to send specific 
       return
     }
 
+    if (!words) {
+      socket.emit("errorMessage", "No words")
+      return
+    }
+
     const cardStrings = words.split("\n")
     const cards = cardStrings.map((x: string) => {
       const termDef = x.split(":")
@@ -119,16 +139,42 @@ io.on('connection', (socket) => { /* socket object may be used to send specific 
     })
 
     room.addCards(cards)
+    io.to(roomId).emit('newWordsAdded', words)
   })
 
-  socket.on("startGame", (socket) => {
-    //TODO: Set up the game 
-    // io.to(room.roomId).emit("gameStarted")
+  socket.on("clientsReadyToPlay", ({ roomId }) => {
+    const room = validateRequest(roomId, socket)
+    if (!room) return
 
+    const player = room.players.find(x => x.id === socket.id)
+    player?.setIsPlayScreenLoaded(true)
+
+    if (!room.players.every((x) => x.getIsPlayScreenLoaded())) return
+
+    // Randomly select a player to start
+    const startingPlayer = room.players[Math.floor(Math.random() * room.players.length)]
+
+    const cards = room.getCards().slice(0, 3).map((x) => x.term)
+    io.to(startingPlayer.id).emit('pickACard', { cards })
+  })
+
+  socket.on("startGame", ({ roomId }) => {
+    const room = validateRequest(roomId, socket)
+    if (!room) return
+
+    const player = room.players.find(x => x.id === socket.id)
+
+    player?.setIsReady(true)
+
+    if (room.players.every(x => x.isReady)) {
+      io.to(roomId).emit('gameStarted')
+    }
+    else {
+      socket.emit('waitingForPlayers')
+    }
   })
 
   socket.on("submitAnswer", (socket) => {
-
 
   })
 

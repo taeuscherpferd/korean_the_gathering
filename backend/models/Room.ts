@@ -3,7 +3,6 @@ import { Player } from "./Player"
 
 export class Room {
   players: Player[] = []
-  list = []
   state = []
   cards = new Set<Card>()
   roomId = ""
@@ -18,6 +17,10 @@ export class Room {
 
   addCards(cards: Card[]) {
     cards.forEach(this.cards.add, this.cards)
+  }
+
+  getCards() {
+    return Array.from(this.cards)
   }
 
   removePlayer(playerId: string) {

@@ -1,3 +1,25 @@
 .LobbyPage {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  width: 80%;
+}
 
+.profile {
+  display: flex;
+}
+
+.list {
+  display: flex;
+}
+
+.submitWords {
+  display: flex;
+}
+
+.vStack {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-content: center;
 }

@@ -8,6 +8,7 @@ export const SET_GAME_STATE = "SET_GAME_STATE";
 export const INIT_APP = "INIT_APP";
 export const SET_SOCKET = "SET_SOCKET";
 export const SET_ROOM_ID = "SET_ROOM_ID";
+export const SET_GAME_OVER_MESSAGE = "SET_GAME_OVER_MESSAGE";
 
 export const setConnectionState = (newState: ConnectionStates): AppActionTypes => ({
   type: SET_CONNECTION_STATE,
@@ -32,4 +33,9 @@ export const setGameState = (newState: GameStates): AppActionTypes => ({
 export const setRoomId = (newRoomId: string): AppActionTypes => ({
   type: SET_ROOM_ID,
   payload: newRoomId
+})
+
+export const setGameOverMessage = (gameOverMessage: string): AppActionTypes => ({
+  type: SET_GAME_OVER_MESSAGE,
+  payload: gameOverMessage
 })

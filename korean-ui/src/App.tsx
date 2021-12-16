@@ -1,6 +1,8 @@
 import axios from 'axios';
+import { GameOverPage } from 'Containers/GameOverPage/GameOverPage';
 import { GamePage } from 'Containers/GamePage/GamePage';
 import { LobbyPage } from 'Containers/LobbyPage/LobbyPage';
+import { LoginPage } from 'Containers/LoginPage/LoginPage';
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { AllAppState } from 'redux/types/reduxTypes';
@@ -30,8 +32,8 @@ function App() {
 
   const currentGamePage = (() => {
     if (connectionState === ConnectionStates.Disconnected || connectionState === ConnectionStates.Connected && gameState === GameStates.FindingMatch) {
-      // return <LoginPage playerName={playerName} setPlayerName={setPlayerName} />
-      return <GamePage />
+      return <LoginPage playerName={playerName} setPlayerName={setPlayerName} />
+      // return <GamePage />
     }
 
     if (gameState === GameStates.SetupGame) {
@@ -40,6 +42,9 @@ function App() {
 
     if (gameState === GameStates.Playing) {
       return <GamePage />
+    }
+    if (gameState === GameStates.GameOver) {
+      return <GameOverPage />
     }
   })()
 

@@ -18,41 +18,56 @@ export const GamePage: React.FC<GamePageProps> = (props) => {
   const socket = useSelector((x: AllAppState) => x.socket)
   const roomId = useSelector((x: AllAppState) => x.roomId)
   const dispatch = useDispatch();
+  const setGameOverMessage = (message: string) => dispatch({ type: 'SET_GAME_OVER_MESSAGE', payload: message });
   const setGameState = (state: GameStates) => dispatch({ type: 'SET_GAME_STATE', payload: state });
 
   useEffect(() => {
     const onPickACardHandler = (cards: string[]) => {
+      console.log("onPickACardHandler", cards)
       setCardsToPickFrom(cards)
     }
     const onDefendCardHandler = (defendFrom: string) => {
       setCardToDefendFrom(defendFrom)
     }
-    const onGameOverHandler = () => {
+    const onGameOverHandler = (results: string) => {
+      setGameOverMessage(results)
+      setGameState(GameStates.GameOver)
     }
 
     const onUpdateTimeRemainingHandler = (time: number) => {
       setTimeRemaining(time)
     }
 
+    const onHealthUpdateHandler = (health: number) => {
+      setCurrentHealth(health);
+    }
+
     socket?.on("pickACard", onPickACardHandler)
     socket?.on("defendCard", onDefendCardHandler)
     socket?.on("gameOver", onGameOverHandler)
     socket?.on("updateTimeRemaining", onUpdateTimeRemainingHandler)
+    socket?.on("healthUpdate", onHealthUpdateHandler)
 
     return () => {
       socket?.off("onPickACard", onPickACardHandler)
       socket?.off("onDefendCard", onDefendCardHandler)
       socket?.off("gameOver", onGameOverHandler)
+      socket?.off("updateTimeRemaining", onUpdateTimeRemainingHandler)
+      socket?.off("healthUpdate", onHealthUpdateHandler)
     }
   }, [])
 
   const sendPickedCard = (card: string) => {
-    socket?.emit("pickedCard", card)
+    console.log("wat")
+    socket?.emit("pickedCard", { roomId: roomId, cardTerm: card })
+    setCardsToPickFrom([])
   }
 
   const sendDefenseResponse = () => {
     //TODO: Find out what the actual event is
-    socket?.emit("response", defenseResponse)
+    socket?.emit("submitAnswer", { roomId: roomId, answer: defenseResponse })
+    setDefenseResponse("")
+    setCardToDefendFrom("")
   }
 
   const content = (() => {
@@ -76,12 +91,12 @@ export const GamePage: React.FC<GamePageProps> = (props) => {
           <span>Defend by entering the correct definition before the timer runs out!</span>
           <Timer timeInSeconds={timeRemaining} />
           {cardToDefendFrom}
-          <input type="text" value={defenseResponse} onChange={(e) => setDefenseResponse(e.target.value)}></input>
+          <input type="text" value={defenseResponse} onChange={(e) => setDefenseResponse(e.target.value)} onSubmit={sendDefenseResponse}></input>
           <button onClick={sendDefenseResponse}>{"Submit"}</button>
         </>
       )
     }
-    return null
+    return <span>Waiting for other players to pick a card...</span>
   })()
 
   return (

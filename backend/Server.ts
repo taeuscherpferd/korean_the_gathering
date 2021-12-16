@@ -9,6 +9,8 @@ import { Room } from './models/Room';
 const app = express();
 const httpServer = http.createServer(app)
 const io = new Server(httpServer, { cors: { origin: "*" } })
+
+let timerId: NodeJS.Timeout
 app.use(cors())
 
 const PORT = 8081;
@@ -52,6 +54,40 @@ const validateRequest = (roomId: string, socket: Socket) => {
   }
 
   return room
+}
+
+const startGuessTimer = (playerId: string, room: Room, currentTimeout: number = 0) => {
+  const timeout = 15000
+  timerId = setTimeout(() => {
+    if (currentTimeout > timeout) {
+      const player = room.players.find((x) => x.id === playerId)
+      const opponent = room.players.find((x) => x.id !== playerId)
+
+      if (!player) return
+      if (!opponent) return
+
+      player.health -= 1
+
+      if (player.health <= 0) {
+        const opponent = room.players.find((x) => x.id !== playerId)
+        if (!opponent) return;
+        io.to(room.roomId).emit('gameOver', `${opponent.name} wins!`)
+        return
+      }
+
+      const cards = room.getCardSlice()
+      if (checkGameOver(cards, player, opponent, room.roomId)) return
+
+      io.to(playerId).emit("healthUpdate", player.health)
+      io.to(playerId).emit("pickACard", cards)
+      return
+    }
+
+    const timeRemainingInSec = Math.round((timeout - currentTimeout) / 1000)
+    io.to(playerId).emit('updateTimeRemaining', timeRemainingInSec)
+
+    startGuessTimer(playerId, room, currentTimeout + 1000)
+  }, 1000)
 }
 
 io.on('connection', (socket) => { /* socket object may be used to send specific messages to the new connected client */
@@ -135,7 +171,8 @@ io.on('connection', (socket) => { /* socket object may be used to send specific 
     const cardStrings = words.split("\n")
     const cards = cardStrings.map((x: string) => {
       const termDef = x.split(":")
-      return new Card(termDef[0], termDef[1])
+      if (!termDef[0] || !termDef[1]) return
+      return new Card(termDef[0].trim().toLocaleLowerCase(), termDef[1].trim().toLocaleLowerCase())
     })
 
     room.addCards(cards)
@@ -154,9 +191,25 @@ io.on('connection', (socket) => { /* socket object may be used to send specific 
     // Randomly select a player to start
     const startingPlayer = room.players[Math.floor(Math.random() * room.players.length)]
 
-    const cards = room.getCards().slice(0, 3).map((x) => x.term)
-    io.to(startingPlayer.id).emit('pickACard', { cards })
+    const cards = room.getCardSlice()
+    io.to(startingPlayer.id).emit('pickACard', cards)
   })
+
+  socket.on("pickedCard", ({ roomId, cardTerm }) => {
+    const room = validateRequest(roomId, socket)
+    if (!room) return
+
+    const opponent = room.players.find(x => x.id !== socket.id)
+
+    if (!opponent) return
+    const card = room.getCardByTerm(cardTerm)
+    if (!card) return
+    room.setCurrentCard(card)
+    room.removeCard(card)
+
+    io.to(opponent.id).emit('defendCard', card.term)
+    startGuessTimer(opponent.id, room)
+  });
 
   socket.on("startGame", ({ roomId }) => {
     const room = validateRequest(roomId, socket)
@@ -168,14 +221,44 @@ io.on('connection', (socket) => { /* socket object may be used to send specific 
 
     if (room.players.every(x => x.isReady)) {
       io.to(roomId).emit('gameStarted')
+      const startingPlayer = room.players[Math.floor(Math.random() * room.players.length)]
+      const cards = room.getCardSlice()
+      io.to(startingPlayer.id).emit('pickACard', cards)
+      console.log("Game Started")
     }
     else {
       socket.emit('waitingForPlayers')
     }
   })
 
-  socket.on("submitAnswer", (socket) => {
+  socket.on("submitAnswer", ({ roomId, answer }) => {
+    console.log("submitted answer: ", answer)
+    const room = validateRequest(roomId, socket)
+    if (!answer) return
+    if (!room) return
 
+    clearTimeout(timerId)
+
+    const player = room.players.find(x => x.id === socket.id)
+    const opponent = room.players.find((x) => x.id !== socket.id)
+
+    if (!opponent) return
+    if (!player) return
+
+    const sanitizedAnswer = answer.trim().toLowerCase()
+
+    if (sanitizedAnswer !== room.getCurrentCard()?.definition) {
+      player.health -= 1
+      if (player.health <= 0) {
+        io.to(roomId).emit('gameOver', `${opponent.name} wins!`)
+      }
+      io.to(player.id).emit("healthUpdate", player.health)
+    }
+
+    const cards = room.getCardSlice()
+    if (checkGameOver(cards, player, opponent, roomId)) return
+
+    io.to(player.id).emit("pickACard", cards)
   })
 
   socket.on("disconnecting", () => {
@@ -198,11 +281,21 @@ io.on('connection', (socket) => { /* socket object may be used to send specific 
     console.log("Rooms after Disconnect ", rooms)
   })
 
-  socket.on("getOponents", () => {
-
-  })
-
-  socket.on("selectOponent", () => {
-
-  })
 });
+
+function checkGameOver(cards: string[], player: Player, opponent: Player, roomId: any) {
+  if (cards.length === 0) {
+    if (player.health > opponent.health) {
+      io.to(roomId).emit('gameOver', `${player.name} wins!`);
+    }
+    else if (player.health < opponent.health) {
+      io.to(roomId).emit('gameOver', `${opponent.name} wins!`);
+    }
+    else {
+      io.to(roomId).emit('gameOver', "It's a tie!");
+    }
+    return true
+  }
+  return false
+}
+

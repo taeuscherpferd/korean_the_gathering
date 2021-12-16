@@ -76,7 +76,7 @@ export const LobbyPage: React.FC<LobbyPageProps> = (props) => {
       <div className={styles.list}>
         <div className={styles.vStack}>
           {"list"}
-          <textarea value={currentWordList} />
+          <textarea readOnly value={currentWordList} />
         </div>
       </div>
       <div className={styles.submitWords}>

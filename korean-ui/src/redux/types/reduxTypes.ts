@@ -1,4 +1,4 @@
-import { INIT_APP, SET_CONNECTION_STATE, SET_GAME_STATE, SET_ROOM_ID, SET_SOCKET } from "redux/actions/appActions";
+import { INIT_APP, SET_CONNECTION_STATE, SET_GAME_OVER_MESSAGE, SET_GAME_STATE, SET_ROOM_ID, SET_SOCKET } from "redux/actions/appActions";
 import { Socket } from "socket.io-client";
 import { ConnectionStates } from "types/enums/ConnectionStates.enum";
 import { GameStates } from "types/enums/GameStates.enum";
@@ -8,6 +8,7 @@ export interface AppState {
   gameState: GameStates
   socket: Socket | null
   roomId: string
+  gameOverMessage: string
 }
 
 interface SetGameState {
@@ -35,7 +36,12 @@ interface SetRoomId {
   payload: string
 }
 
-export type AppActionTypes = SetConnectionState | InitApp | SetSocket | SetGameState | SetRoomId;
+interface SetGameOverMessage {
+  type: typeof SET_GAME_OVER_MESSAGE,
+  payload: string
+}
+
+export type AppActionTypes = SetConnectionState | InitApp | SetSocket | SetGameState | SetRoomId | SetGameOverMessage;
 
 export type AllActionTypes = AppActionTypes
 

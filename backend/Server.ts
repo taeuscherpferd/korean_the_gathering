@@ -93,10 +93,6 @@ const startGuessTimer = (playerId: string, room: Room, currentTimeout: number = 
 io.on('connection', (socket) => { /* socket object may be used to send specific messages to the new connected client */
   console.log('new client connected');
 
-  socket.on("addToList", (socket) => {
-
-  })
-
   socket.on("requestJoinRoom", ({ roomId }) => {
     rooms.forEach(x => {
       if (x.roomId === roomId) {
@@ -170,7 +166,13 @@ io.on('connection', (socket) => { /* socket object may be used to send specific 
 
     const cardStrings = words.split("\n")
     const cards = cardStrings.map((x: string) => {
-      const termDef = x.split(":")
+      let termDef = x.split(":")
+      if (termDef.length !== 2) {
+        termDef = x.split("：")
+      }
+      if (termDef.length !== 2) {
+        return
+      }
       if (!termDef[0] || !termDef[1]) return
       return new Card(termDef[0].trim().toLocaleLowerCase(), termDef[1].trim().toLocaleLowerCase())
     })
@@ -245,7 +247,7 @@ io.on('connection', (socket) => { /* socket object may be used to send specific 
     if (!opponent) return
     if (!player) return
 
-    const sanitizedAnswer = answer.trim().toLowerCase()
+    const sanitizedAnswer = answer.trim().toLocaleLowerCase()
 
     if (sanitizedAnswer !== room.getCurrentCard()?.definition) {
       player.health -= 1
